@@ -105,6 +105,7 @@ enum algos {
 	ALGO_YESPOWER,
 	ALGO_SCRYPT,		/* scrypt(1024,1,1) */
 	ALGO_SHA256D,		/* SHA-256d */
+	ALGO_VIPSTAR,		/* SHA-256d for HTML,VIPS etc... */
 };
 
 static const char *algo_names[] = {
@@ -112,6 +113,7 @@ static const char *algo_names[] = {
 	[ALGO_YESPOWER]		= "yespower",
 	[ALGO_SCRYPT]		= "scrypt",
 	[ALGO_SHA256D]		= "sha256d",
+	[ALGO_VIPSTAR]		= "vipstar",
 };
 
 bool opt_debug = false;
@@ -178,6 +180,7 @@ Options:\n\
                           scrypt    scrypt(1024, 1, 1)\n\
                           scrypt:N  scrypt(N, 1, 1)\n\
                           sha256d   SHA-256d\n\
+                          vipstar   SHA-256d for HTML, VIPS etc...\n\
   -o, --url=URL         URL of mining server\n\
   -O, --userpass=U:P    username:password pair for mining server\n\
   -u, --user=USERNAME   username for mining server\n\
@@ -1103,10 +1106,31 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 		free(xnonce2str);
 	}
 
-	if (opt_algo == ALGO_SCRYPT || opt_algo == ALGO_YESCRYPT || opt_algo == ALGO_YESPOWER)
+	if (opt_algo == ALGO_SCRYPT || opt_algo == ALGO_YESCRYPT || opt_algo == ALGO_YESPOWER) {
 		diff_to_target(work->target, sctx->job.diff / 65536.0);
-	else
-		diff_to_target(work->target, sctx->job.diff);
+        } else if (opt_algo == ALGO_VIPSTAR) {
+		for (i = 0; i < 8; i++)
+			work->data[9 + i] = be32dec((uint32_t *)merkle_root + i);
+		work->data[17] = le32dec(sctx->job.ntime);
+		work->data[18] = le32dec(sctx->job.nbits);
+		for (i = 0; i < 8; i++)
+			work->data[20 + i] = le32dec((uint32_t *)sctx->job.hashstateroot + i);
+		for (i = 0; i < 8; i++)
+			work->data[28 + i] = le32dec((uint32_t *)sctx->job.hashutxoroot + i);
+		work->data[36] = 0x00000000;
+		work->data[37] = 0x00000000;
+		work->data[38] = 0x00000000;
+		work->data[39] = 0x00000000;
+		work->data[40] = 0x00000000;
+		work->data[41] = 0x00000000;
+		work->data[42] = 0x00000000;
+		work->data[43] = 0x00000000;
+		work->data[44] = 0xffffffff;
+		work->data[45] = 0x00000000;
+		work->data[46] = 0x00000000;
+		work->data[47] = 0x00000000;
+		if (opt_debug) applog_hex(work->data, 181);
+         	}
 }
 
 static void *miner_thread(void *userdata)
@@ -1209,6 +1233,9 @@ static void *miner_thread(void *userdata)
 			case ALGO_SHA256D:
 				max64 = 0x1fffff;
 				break;
+			case ALGO_VIPSTAR:
+				max64 = 0x1fffff;
+				break;
 			}
 		}
 		if (work.data[19] + max64 > end_nonce)
@@ -1241,6 +1268,10 @@ static void *miner_thread(void *userdata)
 			                      max_nonce, &hashes_done);
 			break;
 
+		case ALGO_VIPSTAR:
+			rc = scanhash_sha256d_vips(thr_id, work.data, work.target,
+			                      max_nonce, &hashes_done);
+			break;
 		default:
 			/* should never happen */
 			goto out;
