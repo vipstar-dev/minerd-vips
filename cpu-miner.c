@@ -332,11 +332,6 @@ static bool work_decode(const json_t *val, struct work *work)
 {
 	int i;
 
-        if (opt_algo == ALGO_VIPSTAR) {
-		data_size = 192;
-		adata_sz = data_size/4;
-	}
-
 	if (unlikely(!jobj_binary(val, "data", work->data, sizeof(work->data)))) {
 		applog(LOG_ERR, "JSON invalid data");
 		goto err_out;
@@ -785,9 +780,6 @@ static bool submit_upstream_work(CURL *curl, struct work *work)
 			share_result(json_is_null(res), json_string_value(res));
 
 		json_decref(val);
-	} else if(opt_algo == ALGO_VIPSTAR){
-			data_size = 192;
-			adata_sz = data_size / 4;
 	} else {
 		/* build hex string */
 		for (i = 0; i < ARRAY_SIZE(work->data); i++)
