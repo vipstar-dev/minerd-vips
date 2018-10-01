@@ -1203,8 +1203,7 @@ out:
 
 static bool stratum_notify(struct stratum_ctx *sctx, json_t *params)
 {
-	const char *job_id, *prevhash, *coinb1, *coinb2, *version, *nbits, *ntime;
-        const char *hashstateroot, *hashutxoroot;
+	const char *job_id, *prevhash, *coinb1, *coinb2, *version, *nbits, *ntime, *hashstateroot, *hashutxoroot;
 	size_t coinb1_size, coinb2_size;
 	bool clean, ret = false;
 	int merkle_count, i;
@@ -1222,10 +1221,10 @@ static bool stratum_notify(struct stratum_ctx *sctx, json_t *params)
 	version = json_string_value(json_array_get(params, 5));
 	nbits = json_string_value(json_array_get(params, 6));
 	ntime = json_string_value(json_array_get(params, 7));
-	hashstateroot = json_string_value(json_array_get(params, 8));
-	hashutxoroot = json_string_value(json_array_get(params, 9));
-	clean = json_is_true(json_array_get(params, 10));
-
+	clean = json_is_true(json_array_get(params, 8));
+	hashstateroot = json_string_value(json_array_get(params, 9));
+	hashutxoroot = json_string_value(json_array_get(params, 10));
+	
 	if (!job_id || !prevhash || !coinb1 || !coinb2 || !version || !nbits || !ntime ||
 	    strlen(prevhash) != 64 || strlen(version) != 8 ||
 	    strlen(nbits) != 8 || strlen(ntime) != 8) {
