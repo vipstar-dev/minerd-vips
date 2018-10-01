@@ -1130,7 +1130,14 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 		work->data[46] = 0x00000000;
 		work->data[47] = 0x00000000;
 		if (opt_debug) applog_hex(work->data, 181);
-         	}
+         	} else {
+		for (i = 0; i < 8; i++)
+			work->data[9 + i] = be32dec((uint32_t *)merkle_root + i);
+		work->data[17] = le32dec(sctx->job.ntime);
+		work->data[18] = le32dec(sctx->job.nbits);
+		work->data[20] = 0x80000000;
+		work->data[31] = (opt_algo == ALGO_MJOLLNIR) ? 0x000002A0 : 0x00000280;
+	}
 }
 
 static void *miner_thread(void *userdata)
