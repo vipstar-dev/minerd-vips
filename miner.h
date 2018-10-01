@@ -160,8 +160,7 @@ extern int scanhash_yespower(int thr_id, uint32_t *pdata,
 extern int scanhash_sha256d(int thr_id, uint32_t *pdata,
 	const uint32_t *ptarget, uint32_t max_nonce, unsigned long *hashes_done);
 
-extern int scanhash_sha256d_vips(int thr_id, uint32_t *pdata,
-	const uint32_t *ptarget, uint32_t max_nonce, unsigned long *hashes_done);
+extern int scanhash_sha256d_vips(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done);
 
 extern unsigned char *scrypt_buffer_alloc(int N);
 extern int scanhash_scrypt(int thr_id, uint32_t *pdata,
