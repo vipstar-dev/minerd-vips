@@ -4,17 +4,15 @@
 #include "../compat.h"
 #include "vipstar.h"
 
-int scanhash_sha256d_vips(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
+int scanhash_sha256d_vips(int thr_id, uint32_t *pdata, const uint32_t *ptarget, uint32_t max_nonce, unsigned long *hashes_done)
 {
-	uint32_t _ALIGN(128) data[128];
-	uint32_t _ALIGN(32) hash[8];
-	uint32_t _ALIGN(32) midstate[8];
-	uint32_t _ALIGN(32) prehash[8];
-	uint32_t *pdata = work->data;
-	uint32_t *ptarget = work->target;
-	const uint32_t Htarg = ptarget[7];
-	const uint32_t first_nonce = pdata[19];
+	uint32_t data[64] __attribute__((aligned(128)));
+	uint32_t hash[8] __attribute__((aligned(32)));
+	uint32_t midstate[8] __attribute__((aligned(32)));
+	uint32_t prehash[8] __attribute__((aligned(32)));
 	uint32_t n = pdata[19] - 1;
+	const uint32_t first_nonce = pdata[19];
+	const uint32_t Htarg = ptarget[7];
 
 	memcpy(data, pdata + 16, 64);
 	sha256d_preextend(data);
