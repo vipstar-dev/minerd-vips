@@ -32,7 +32,7 @@ int scanhash_sha256d_vips(int thr_id, uint32_t *pdata, const uint32_t *ptarget, 
 			pdata[19] = data[3];
 			sha256d_181_swap(hash, pdata);
 			if (fulltest(hash, ptarget)) {
-				work_set_target_ratio(work, hash);
+				work_set_target_ratio(ptarget, hash);
 				*hashes_done = n - first_nonce + 1;
 				return 1;
 			}
