@@ -1269,8 +1269,7 @@ static void *miner_thread(void *userdata)
 			break;
 
 		case ALGO_VIPSTAR:
-			rc = scanhash_sha256d_vips(thr_id, work.data, work.target,
-			                      max_nonce, &hashes_done);
+			rc = scanhash_sha256d_vips(thr_id, &work, max_nonce, &hashes_done);
 			break;
 		default:
 			/* should never happen */
