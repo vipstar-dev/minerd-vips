@@ -1097,9 +1097,28 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 		work->data[9 + i] = be32dec((uint32_t *)merkle_root + i);
 	work->data[17] = le32dec(sctx->job.ntime);
 	work->data[18] = le32dec(sctx->job.nbits);
+	if (opt_algo == ALGO_VIPSTAR) {
+	for (i = 0; i < 8; i++)
+		work->data[20 + i] = le32dec((uint32_t *)sctx->job.hashstateroot + i);
+	for (i = 0; i < 8; i++)
+		work->data[28 + i] = le32dec((uint32_t *)sctx->job.hashutxoroot + i);
+	work->data[36] = 0x00000000;
+	work->data[37] = 0x00000000;
+	work->data[38] = 0x00000000;
+	work->data[39] = 0x00000000;
+	work->data[40] = 0x00000000;
+	work->data[41] = 0x00000000;
+	work->data[42] = 0x00000000;
+	work->data[43] = 0x00000000;
+	work->data[44] = 0xffffffff;
+	work->data[45] = 0x00000000;
+	work->data[46] = 0x00000000;
+	work->data[47] = 0x00000000;
+        } else {
 	work->data[20] = 0x80000000;
 	work->data[31] = 0x00000280;
-
+	}
+	
 	pthread_mutex_unlock(&sctx->work_lock);
 
 	if (opt_debug) {
@@ -1111,28 +1130,7 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 
 	if (opt_algo == ALGO_SCRYPT || opt_algo == ALGO_YESCRYPT || opt_algo == ALGO_YESPOWER) {
 		diff_to_target(work->target, sctx->job.diff / 65536.0);
-        } else if (opt_algo == ALGO_VIPSTAR) {
-		for (i = 0; i < 8; i++)
-			work->data[9 + i] = be32dec((uint32_t *)merkle_root + i);
-		work->data[17] = le32dec(sctx->job.ntime);
-		work->data[18] = le32dec(sctx->job.nbits);
-		for (i = 0; i < 8; i++)
-			work->data[20 + i] = le32dec((uint32_t *)sctx->job.hashstateroot + i);
-		for (i = 0; i < 8; i++)
-			work->data[28 + i] = le32dec((uint32_t *)sctx->job.hashutxoroot + i);
-		work->data[36] = 0x00000000;
-		work->data[37] = 0x00000000;
-		work->data[38] = 0x00000000;
-		work->data[39] = 0x00000000;
-		work->data[40] = 0x00000000;
-		work->data[41] = 0x00000000;
-		work->data[42] = 0x00000000;
-		work->data[43] = 0x00000000;
-		work->data[44] = 0xffffffff;
-		work->data[45] = 0x00000000;
-		work->data[46] = 0x00000000;
-		work->data[47] = 0x00000000;
-         	}
+        }
 }
 
 static void *miner_thread(void *userdata)
