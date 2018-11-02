@@ -265,7 +265,7 @@ static struct option const options[] = {
 };
 
 struct work {
-	uint32_t data[32];
+	uint32_t data[48];
 	uint32_t target[8];
 
 	int height;
@@ -363,6 +363,8 @@ static bool gbt_work_decode(const json_t *val, struct work *work)
 	int tx_count, tx_size;
 	unsigned char txc_vi[9];
 	unsigned char (*merkle_tree)[32] = NULL;
+	uint32_t hash_state_root[8];
+	uint32_t hash_utxo_root[8];
 	bool coinbase_append = false;
 	bool submit_coinbase = false;
 	bool segwit = false;
@@ -426,6 +428,15 @@ static bool gbt_work_decode(const json_t *val, struct work *work)
 		goto out;
 	}
 
+	if (unlikely(!jobj_binary(val, "hashstateroot", hash_state_hash, sizeof(hash_state_hash)))) {
+		applog(LOG_ERR, "JSON invalid hashstateroot");
+		goto out;
+	}
+
+	if (unlikely(!jobj_binary(val, "hashutxoroot", hash_utxo_hash, sizeof(hash_utxo_hash)))) {
+		applog(LOG_ERR, "JSON invalid hashutxoroot");
+		goto out;
+	}
 	/* find count and size of transactions */
 	txa = json_object_get(val, "transactions");
 	if (!txa || !json_is_array(txa)) {
