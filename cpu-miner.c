@@ -639,9 +639,22 @@ static bool gbt_work_decode(const json_t *val, struct work *work)
 		work->data[9 + i] = be32dec((uint32_t *)merkle_tree[0] + i);
 	work->data[17] = swab32(curtime);
 	work->data[18] = le32dec(&bits);
-	memset(work->data + 19, 0x00, 52);
-	work->data[20] = 0x80000000;
-	work->data[31] = 0x00000280;
+	for (i = 0; i < 8; i++)
+		work->data[20 + i] = le32dec((uint32_t *)sctx->job.hashstateroot + i);
+	for (i = 0; i < 8; i++)
+        	work->data[28 + i] = le32dec((uint32_t *)sctx->job.hashutxoroot + i);
+	work->data[36] = 0x00000000;
+	work->data[37] = 0x00000000;
+	work->data[38] = 0x00000000;
+	work->data[39] = 0x00000000;
+	work->data[40] = 0x00000000;
+	work->data[41] = 0x00000000;
+	work->data[42] = 0x00000000;
+	work->data[43] = 0x00000000;
+	work->data[44] = 0xffffffff;
+	work->data[45] = 0x00000000;
+	work->data[46] = 0x00000000;
+	work->data[47] = 0x00000000;
 
 	if (unlikely(!jobj_binary(val, "target", target, sizeof(target)))) {
 		applog(LOG_ERR, "JSON invalid target");
@@ -747,20 +760,20 @@ static bool submit_upstream_work(CURL *curl, struct work *work)
 
 		for (i = 0; i < ARRAY_SIZE(work->data); i++)
 			be32enc(work->data + i, work->data[i]);
-		bin2hex(data_str, (unsigned char *)work->data, 80);
+		bin2hex(data_str, (unsigned char *)work->data, 144);
 		if (work->workid) {
 			char *params;
 			val = json_object();
 			json_object_set_new(val, "workid", json_string(work->workid));
 			params = json_dumps(val, 0);
 			json_decref(val);
-			req = malloc(128 + 2*80 + strlen(work->txs) + strlen(params));
+			req = malloc(128 + 2*144 + strlen(work->txs) + strlen(params));
 			sprintf(req,
 				"{\"method\": \"submitblock\", \"params\": [\"%s%s\", %s], \"id\":1}\r\n",
 				data_str, work->txs, params);
 			free(params);
 		} else {
-			req = malloc(128 + 2*80 + strlen(work->txs));
+			req = malloc(128 + 2*144 + strlen(work->txs));
 			sprintf(req,
 				"{\"method\": \"submitblock\", \"params\": [\"%s%s\"], \"id\":1}\r\n",
 				data_str, work->txs);
@@ -1012,9 +1025,9 @@ static bool get_work(struct thr_info *thr, struct work *work)
 	if (opt_benchmark) {
 		memset(work->data, 0x55, 76);
 		work->data[17] = swab32(time(NULL));
-		memset(work->data + 19, 0x00, 52);
-		work->data[20] = 0x80000000;
-		work->data[31] = 0x00000280;
+		memset(work->data + 35, 0x00, 52);
+		work->data[36] = 0x80000000;
+		work->data[47] = 0x00000280;
 		memset(work->target, 0x00, sizeof(work->target));
 		return true;
 	}
@@ -1097,16 +1110,30 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 	for (i = 0; i < sctx->xnonce2_size && !++sctx->job.xnonce2[i]; i++);
 
 	/* Assemble block header */
-	memset(work->data, 0, 128);
+	memset(work->data, 0, 192);
 	work->data[0] = le32dec(sctx->job.version);
 	for (i = 0; i < 8; i++)
 		work->data[1 + i] = le32dec((uint32_t *)sctx->job.prevhash + i);
 	for (i = 0; i < 8; i++)
 		work->data[9 + i] = be32dec((uint32_t *)merkle_root + i);
+	for (i = 0; i < 8; i++)
+		work->data[20 + i] = le32dec((uint32_t *)sctx->job.hashstateroot + i);
+	for (i = 0; i < 8; i++)
+        	work->data[28 + i] = le32dec((uint32_t *)sctx->job.hashutxoroot + i);
 	work->data[17] = le32dec(sctx->job.ntime);
 	work->data[18] = le32dec(sctx->job.nbits);
-	work->data[20] = 0x80000000;
-	work->data[31] = 0x00000280;
+	work->data[36] = 0x00000000;
+	work->data[37] = 0x00000000;
+	work->data[38] = 0x00000000;
+	work->data[39] = 0x00000000;
+	work->data[40] = 0x00000000;
+	work->data[41] = 0x00000000;
+	work->data[42] = 0x00000000;
+	work->data[43] = 0x00000000;
+	work->data[44] = 0xffffffff;
+	work->data[45] = 0x00000000;
+	work->data[46] = 0x00000000;
+	work->data[47] = 0x00000000;
 
 	pthread_mutex_unlock(&sctx->work_lock);
 
