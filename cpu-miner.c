@@ -639,22 +639,12 @@ static bool gbt_work_decode(const json_t *val, struct work *work)
 		work->data[9 + i] = be32dec((uint32_t *)merkle_tree[0] + i);
 	work->data[17] = swab32(curtime);
 	work->data[18] = le32dec(&bits);
+	memset(work->data + 36, 0x00, 52);
 	for (i = 0; i < 8; i++)
-		work->data[20 + i] = le32dec(hash_state_root + i);
+		work->data[27 - i] = le32dec(hash_state_root + i);
 	for (i = 0; i < 8; i++)
-        	work->data[28 + i] = le32dec(hash_utxo_root + i);
-	work->data[36] = 0x00000000;
-	work->data[37] = 0x00000000;
-	work->data[38] = 0x00000000;
-	work->data[39] = 0x00000000;
-	work->data[40] = 0x00000000;
-	work->data[41] = 0x00000000;
-	work->data[42] = 0x00000000;
-	work->data[43] = 0x00000000;
+        	work->data[35 - i] = le32dec(hash_utxo_root + i);
 	work->data[44] = 0xffffffff;
-	work->data[45] = 0x00000000;
-	work->data[46] = 0x00000000;
-	work->data[47] = 0x00000000;
 
 	if (unlikely(!jobj_binary(val, "target", target, sizeof(target)))) {
 		applog(LOG_ERR, "JSON invalid target");
@@ -1116,24 +1106,13 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 		work->data[1 + i] = le32dec((uint32_t *)sctx->job.prevhash + i);
 	for (i = 0; i < 8; i++)
 		work->data[9 + i] = be32dec((uint32_t *)merkle_root + i);
-	for (i = 0; i < 8; i++)
-		work->data[20 + i] = le32dec((uint32_t *)sctx->job.hashstateroot + i);
-	for (i = 0; i < 8; i++)
-        	work->data[28 + i] = le32dec((uint32_t *)sctx->job.hashutxoroot + i);
 	work->data[17] = le32dec(sctx->job.ntime);
 	work->data[18] = le32dec(sctx->job.nbits);
-	work->data[36] = 0x00000000;
-	work->data[37] = 0x00000000;
-	work->data[38] = 0x00000000;
-	work->data[39] = 0x00000000;
-	work->data[40] = 0x00000000;
-	work->data[41] = 0x00000000;
-	work->data[42] = 0x00000000;
-	work->data[43] = 0x00000000;
+	for (i = 0; i < 8; i++)
+		work->data[27 + i] = le32dec((uint32_t *)sctx->job.hashstateroot + i);
+	for (i = 0; i < 8; i++)
+        	work->data[35 + i] = le32dec((uint32_t *)sctx->job.hashutxoroot + i);
 	work->data[44] = 0xffffffff;
-	work->data[45] = 0x00000000;
-	work->data[46] = 0x00000000;
-	work->data[47] = 0x00000000;
 
 	pthread_mutex_unlock(&sctx->work_lock);
 
