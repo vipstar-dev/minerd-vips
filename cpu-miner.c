@@ -428,12 +428,12 @@ static bool gbt_work_decode(const json_t *val, struct work *work)
 		goto out;
 	}
 
-	if (unlikely(!jobj_binary(val, "hashstateroot", hash_state_hash, sizeof(hash_state_hash)))) {
+	if (unlikely(!jobj_binary(val, "hashstateroot", hash_state_root, sizeof(hash_state_root)))) {
 		applog(LOG_ERR, "JSON invalid hashstateroot");
 		goto out;
 	}
 
-	if (unlikely(!jobj_binary(val, "hashutxoroot", hash_utxo_hash, sizeof(hash_utxo_hash)))) {
+	if (unlikely(!jobj_binary(val, "hashutxoroot", hash_utxo_root, sizeof(hash_utxo_root)))) {
 		applog(LOG_ERR, "JSON invalid hashutxoroot");
 		goto out;
 	}
@@ -640,9 +640,9 @@ static bool gbt_work_decode(const json_t *val, struct work *work)
 	work->data[17] = swab32(curtime);
 	work->data[18] = le32dec(&bits);
 	for (i = 0; i < 8; i++)
-		work->data[20 + i] = le32dec((uint32_t *)sctx->job.hashstateroot + i);
+		work->data[20 + i] = le32dec(hash_state_root + i);
 	for (i = 0; i < 8; i++)
-        	work->data[28 + i] = le32dec((uint32_t *)sctx->job.hashutxoroot + i);
+        	work->data[28 + i] = le32dec(hash_utxo_root + i);
 	work->data[36] = 0x00000000;
 	work->data[37] = 0x00000000;
 	work->data[38] = 0x00000000;
