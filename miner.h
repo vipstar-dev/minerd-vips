@@ -227,6 +227,8 @@ struct stratum_job {
 	unsigned char version[4];
 	unsigned char nbits[4];
 	unsigned char ntime[4];
+	unsigned char hashstateroot[32];
+	unsigned char hashutxoroot[32];
 	bool clean;
 	double diff;
 };
