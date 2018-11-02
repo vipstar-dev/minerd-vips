@@ -1203,7 +1203,7 @@ out:
 
 static bool stratum_notify(struct stratum_ctx *sctx, json_t *params)
 {
-	const char *job_id, *prevhash, *coinb1, *coinb2, *version, *nbits, *ntime;
+	const char *job_id, *prevhash, *coinb1, *coinb2, *version, *nbits, *ntime, *hashstateroot, *hashutxoroot;
 	size_t coinb1_size, coinb2_size;
 	bool clean, ret = false;
 	int merkle_count, i;
@@ -1229,6 +1229,19 @@ static bool stratum_notify(struct stratum_ctx *sctx, json_t *params)
 		applog(LOG_ERR, "Stratum notify: invalid parameters");
 		goto out;
 	}
+	
+	hashstateroot = json_string_value(json_array_get(params, 9));
+	if (!hashstateroot || strlen(hashstateroot) != 64) {
+		applog(LOG_ERR, "Stratum notify: invalid parameters");
+		goto out;
+	}
+	
+	hashutxoroot = json_string_value(json_array_get(params, 10));
+	if (!hashutxoroot || strlen(hashutxoroot) != 64) {
+		applog(LOG_ERR, "Stratum notify: invalid parameters");
+		goto out;
+	}
+	
 	merkle = malloc(merkle_count * sizeof(char *));
 	for (i = 0; i < merkle_count; i++) {
 		const char *s = json_string_value(json_array_get(merkle_arr, i));
@@ -1270,6 +1283,8 @@ static bool stratum_notify(struct stratum_ctx *sctx, json_t *params)
 	hex2bin(sctx->job.version, version, 4);
 	hex2bin(sctx->job.nbits, nbits, 4);
 	hex2bin(sctx->job.ntime, ntime, 4);
+	hex2bin(sctx->job.hashstateroot, hashstateroot, 32);
+	hex2bin(sctx->job.hashutxoroot, hashutxoroot, 32);
 	sctx->job.clean = clean;
 
 	sctx->job.diff = sctx->next_diff;
