@@ -4,7 +4,7 @@
 #include "compat.h"
 #include "vipstar.h"
 
-int scanhash_sha256d_vips(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)
+int scanhash_sha256d_vips(int thr_id, uint32_t *pdata, const uint32_t *ptarget, uint32_t max_nonce, unsigned long *hashes_done)
 {
 	uint32_t _ALIGN(128) data[128];
 	uint32_t _ALIGN(32) hash[8];
